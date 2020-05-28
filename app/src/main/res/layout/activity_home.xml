@@ -25,7 +25,14 @@
             android:layout_height="wrap_content"
             android:background="@drawable/button"
             android:layout_marginBottom="20dp"
-            android:text="버튼추가" />
+            android:text="주문목록" />
+        <Button
+            android:id="@+id/basketBtn"
+            android:layout_width="305dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button"
+            android:layout_marginBottom="20dp"
+            android:text="장바구니목록" />
     </LinearLayout>
 
 

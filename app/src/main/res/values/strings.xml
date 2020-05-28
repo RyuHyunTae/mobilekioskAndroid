@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ProjectAndroid</string>
+    <string name="title_activity_order_list">OrderListActivity</string>
 </resources>

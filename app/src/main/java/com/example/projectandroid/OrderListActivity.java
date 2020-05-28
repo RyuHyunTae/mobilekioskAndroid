@@ -1,7 +1,6 @@
 package com.example.projectandroid;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,66 +25,38 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
-public class HomeActivity extends AppCompatActivity {
+public class OrderListActivity extends AppCompatActivity {
 
     String id, password, name, phone;
     private SharedPreferences appData;
 
-
-
     LinearLayout layout;
     Context context;
 
-    private Button scanQRBtn;
-    Button one,basketBtn;
+    JSONObject requestData = new JSONObject();
 
-    JSONObject requestData;
-
-    private LinearLayout area;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_order_list);
 
         appData = getSharedPreferences("appData", MODE_PRIVATE);
         load();
 
-
-        try {
-            requestData= new JSONObject();
-            requestData.accumulate("id", id);
-            Log.d("requestData", requestData.toString());
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        new postTask().execute("http://192.168.64.157:8080/biz/user/shopList.do");
-
-        one=(Button) findViewById(R.id.addBtn);
-        basketBtn=(Button) findViewById(R.id.basketBtn);
         layout = (LinearLayout)findViewById(R.id.layout);
         context=this;
 
-        one.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(), OrderListActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivityForResult(intent, 1000);
-            }
-        });
-        scanQRBtn = (Button) findViewById(R.id.scanQR);
+        try {
+            requestData.accumulate("id", id);
+            Log.d("requestData", requestData.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-        scanQRBtn.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
-                Intent intent = new Intent(HomeActivity.this, ScanQR.class);
-                startActivity(intent);
-            }
-        });
-
-
+        new postTask().execute("http://192.168.64.157:8080/biz/order/list.do");
     }
 
     class postTask extends AsyncTask<String, String, String> {
@@ -160,50 +132,57 @@ public class HomeActivity extends AppCompatActivity {
             Log.d("postData", result);
             try {
                 JSONArray jArrObject = new JSONArray(result);
-                int list_count=jArrObject.length();
+                int list_count = jArrObject.length();
+                int[] orderNum = new int[list_count];
+                String[] orderTime = new String[list_count];
+                String[] orderRequest = new String[list_count];
+                String[] orderState = new String[list_count];
+                int[] orderTotalPrice = new int[list_count];
+                int[] detailCount = new int[list_count];
                 String[] shopName = new String[list_count];
-                final String[] businessNum = new String[list_count];
+                String[] menuName = new String[list_count];
+                int[] menuPrice = new int[list_count];
 
-                for(int i =0; i<list_count;i++){
+                ArrayList<String> arrayList = new ArrayList<String>();
+
+                for (int i = 0; i < list_count; i++) {
                     JSONObject jsonObject = jArrObject.getJSONObject(i);
-                    shopName[i]=jsonObject.getString("shopName");
-                    businessNum[i]=jsonObject.getString("businessNum");
-                    final Button btn = new Button(context);
-                    btn.setId(i);
-                    btn.setText(shopName[i]);
-                    layout.addView(btn);
-                    final int finalI = i;
-                    btn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
-                            intent.putExtra("businessNum", businessNum[finalI]);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                            startActivityForResult(intent, 1000);
+                    orderNum[i] = jsonObject.getInt("orderNum");
+                    orderTime[i] = jsonObject.getString("orderTime");
+                    orderRequest[i] = jsonObject.getString("orderRequest");
+                    orderState[i] = jsonObject.getString("orderState");
+                    orderTotalPrice[i] = jsonObject.getInt("orderTotalPrice");
+                    detailCount[i] = jsonObject.getInt("detailCount");
+                    shopName[i] = jsonObject.getString("shopName");
+                    menuName[i] = jsonObject.getString("menuName");
+                    menuPrice[i] = jsonObject.getInt("menuPrice");
+                }
+
+                for(String time : orderTime) {
+                    if(!arrayList.contains(time)) {
+                        arrayList.add(time);
+                    }
+                }
+
+                for(String list : arrayList){
+                    TextView view1 = new TextView(context);
+                    view1.setText(list);
+                    layout.addView(view1);
+                    for(int j = 0;j<list_count;j++){
+                        if(list.equals(orderTime[j])){
+                            TextView text = new TextView(context);
+                            text.setText("메뉴명 : "+menuName[j]+" 수량 : " + detailCount[j] +" 가격 : " +(menuPrice[j]*detailCount[j]));
+                            layout.addView(text);
                         }
-                    });
+                    }
                 }
 
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
-
-            basketBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(getApplicationContext(), BasketActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivityForResult(intent, 1000);
-                }
-            });
-
-
         }
     }
-
-
 
     // 설정값을 불러오는 함수
     private void load() {
