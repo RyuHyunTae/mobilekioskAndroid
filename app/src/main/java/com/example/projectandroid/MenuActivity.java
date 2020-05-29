@@ -42,6 +42,11 @@ public class MenuActivity extends AppCompatActivity {
     Context context;
     TextView hits;
 
+
+    int topMenuNum1;
+    int topMenuNum2;
+    int topMenuNum3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +69,7 @@ public class MenuActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        new postTask().execute("http://192.168.64.157:8080/biz/user/menuhits.do");
+        new postTask3().execute("http://192.168.64.157:8080/biz/user/preMenuList.do");
 
     }
 
@@ -354,8 +359,16 @@ public class MenuActivity extends AppCompatActivity {
                         if(list.equals(menuCategory[j])){
                             final Button btn = new Button(context);
                             btn.setId(menuNum[j]);
-                            btn.setText(menuName[j]);
-                            layout.addView(btn);
+                            if(menuNum[j]==topMenuNum1){
+                                btn.setText(menuName[j]+" 1등 ");
+                            }else if(menuNum[j]==topMenuNum2){
+                                btn.setText(menuName[j]+" 2등 ");
+                            }else if(menuNum[j]==topMenuNum3){
+                                btn.setText(menuName[j]+" 3등 ");
+                            }else{
+                                btn.setText(menuName[j]);
+                            }
+                                layout.addView(btn);
                             final int finalJ1 = j;
                             btn.setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -371,6 +384,108 @@ public class MenuActivity extends AppCompatActivity {
                     }
                 }
 
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+    class postTask3 extends AsyncTask<String, String, String> {
+
+
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+
+                HttpURLConnection con = null;
+                BufferedReader reader = null;
+
+                try {
+                    URL url = new URL(urls[0]);
+                    //연결을 함
+                    con = (HttpURLConnection) url.openConnection();
+
+                    con.setRequestMethod("POST");//POST방식으로 보냄
+//                    con.setRequestProperty("Cache-Control", "no-cache");//캐시 설정
+                    con.setRequestProperty("Content-Type", "application/json");//application JSON 형식으로 전송
+                    con.setDoOutput(true);//Outstream으로 post 데이터를 넘겨주겠다는 의미
+                    con.setDoInput(true);//Inputstream으로 서버로부터 응답을 받겠다는 의미
+                    con.connect();
+                    Log.d("requestData", "1");
+                    //서버로 보내기위해서 스트림 만듬
+                    OutputStream outStream = con.getOutputStream();
+                    //버퍼를 생성하고 넣음
+                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream));
+                    writer.write(requestData.toString());
+                    writer.flush();
+                    writer.close();//버퍼를 받아줌
+                    Log.d("requestData", "2");
+                    //서버로 부터 데이터를 받음
+                    InputStream stream = con.getInputStream();
+
+                    reader = new BufferedReader(new InputStreamReader(stream));
+
+                    StringBuffer buffer = new StringBuffer();
+
+                    String line = "";
+                    while ((line = reader.readLine()) != null) {
+                        buffer.append(line);
+                    }
+                    Log.d("requestData", "3");
+                    return buffer.toString();//서버로 부터 받은 값을 리턴해줌 아마 OK!!가 들어올것임
+
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (con != null) {
+                        con.disconnect();
+                    }
+                    try {
+                        if (reader != null) {
+                            reader.close();//버퍼를 닫아줌
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            Log.d("postData", result);
+            try {
+                JSONArray jArrObject = new JSONArray(result);
+                int list_count = jArrObject.length();
+                int[] menuNum = new int[list_count];
+                int[] rank = new int [list_count];
+
+                for (int i = 0; i < list_count; i++) {
+                    JSONObject jsonObject = jArrObject.getJSONObject(i);
+                    menuNum[i] = jsonObject.getInt("menuNum");
+                }
+
+                if(list_count==1){
+                    topMenuNum1=menuNum[0];
+                } else if(list_count==2){
+                    topMenuNum1=menuNum[0];
+                    topMenuNum2=menuNum[1];
+                } else if(list_count==3){
+                    topMenuNum1=menuNum[0];
+                    topMenuNum2=menuNum[1];
+                    topMenuNum3=menuNum[2];
+                }
+
+                new postTask().execute("http://192.168.64.157:8080/biz/user/menuhits.do");
 
             } catch (JSONException e) {
                 e.printStackTrace();
