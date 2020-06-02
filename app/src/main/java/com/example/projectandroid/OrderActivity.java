@@ -140,6 +140,7 @@ public class OrderActivity extends AppCompatActivity {
             super.onPostExecute(result);
             Log.d("postData", result);
             int orderTotalPrice=0;
+            String businessNumber = null;
             try {
                 JSONArray jArrObject = new JSONArray(result);
                 int list_count = jArrObject.length();
@@ -148,6 +149,7 @@ public class OrderActivity extends AppCompatActivity {
                 int[] basketCount = new int[list_count];
                 String[] menuName = new String[list_count];
                 final int[] menuPrice = new int[list_count];
+                String[] businessNum = new String[list_count];
 
 
 
@@ -158,8 +160,11 @@ public class OrderActivity extends AppCompatActivity {
                     menuName[i] = jsonObject.getString("menuName");
                     basketCount[i] = jsonObject.getInt("basketCount");
                     menuPrice[i] = jsonObject.getInt("menuPrice");
+                    businessNum[i] = jsonObject.getString("businessNum");
+
 
                     orderTotalPrice=orderTotalPrice+(menuPrice[i]*basketCount[i]);
+                    businessNumber=businessNum[i];
 
                     TextView view1 = new TextView(context);
                     view1.setText(menuName[i]);
@@ -175,12 +180,14 @@ public class OrderActivity extends AppCompatActivity {
             }
 
             final int finalOrderTotalPrice = orderTotalPrice;
+            final String bNum=businessNumber;
             order.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     try {
                         requestData.accumulate("orderRequest",request.getText());
                         requestData.accumulate("orderTotalPrice", finalOrderTotalPrice);
+                        requestData.accumulate("businessNum",bNum);
                         Log.d("requestData", requestData.toString());
                     } catch (JSONException e) {
                         e.printStackTrace();
