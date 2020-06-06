@@ -3,12 +3,17 @@ package com.example.projectandroid;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -27,6 +33,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 
 public class DetailActivity extends AppCompatActivity {
@@ -45,12 +52,20 @@ public class DetailActivity extends AppCompatActivity {
 
     Button basketInsert;
 
+    ImageView imView;
+
+    Bitmap bmImg;
+    back task;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
         basketInsert = (Button)findViewById(R.id.insert);
+
+
+
 
         appData = getSharedPreferences("appData", MODE_PRIVATE);
         load();
@@ -77,6 +92,8 @@ public class DetailActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+
 
         new postTask().execute("http://192.168.64.157:8080/biz/user/menuDetail.do");
     }
@@ -157,22 +174,38 @@ public class DetailActivity extends AppCompatActivity {
                 int list_count = jArrObject.length();
                 int[] menuNum = new int[list_count];
                 String[] menuName = new String[list_count];
+                String[] menuDescription = new String[list_count];
                 final int[] menuPrice = new int[list_count];
+                final String[] menuPicture = new String[list_count];
                 String[] menuCategory = new String[list_count];
+
+
 
 
                 for (int i = 0; i < list_count; i++) {
                     JSONObject jsonObject = jArrObject.getJSONObject(i);
                     menuNum[i] = jsonObject.getInt("menuNum");
                     menuName[i] = jsonObject.getString("menuName");
+                    menuDescription[i] = jsonObject.getString("menuDescription");
                     menuPrice[i] = jsonObject.getInt("menuPrice");
+                    menuPicture[i] = jsonObject.getString("menuPicture");
                     menuCategory[i] = jsonObject.getString("menuCategory");
 
                 }
 
+
+
+
                 TextView view1 = new TextView(context);
-                view1.setText(menuName[0]);
+                view1.setText("메뉴명 : " + menuName[0]+"\n\n");
+                view1.append("메뉴 가격 : "+menuPrice[0]+"\n\n");
+                view1.append("메뉴 설명 : " + menuDescription[0]+"\n");
+
                 layout.addView(view1);
+
+                task = new back();
+                imView=(ImageView) findViewById(R.id.img);
+                task.execute("http://192.168.64.157:8080/biz/img/"+menuPicture[0]);
 
                 basketInsert.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -264,6 +297,38 @@ public class DetailActivity extends AppCompatActivity {
 
         }
     }
+
+    private class back extends AsyncTask<String, Integer,Bitmap>{
+
+
+
+        @Override
+        protected Bitmap doInBackground(String... urls) {
+            // TODO Auto-generated method stub
+            try{
+                URL myFileUrl = new URL(urls[0]);
+                HttpURLConnection conn = (HttpURLConnection)myFileUrl.openConnection();
+                conn.setDoInput(true);
+                conn.connect();
+
+                InputStream is = conn.getInputStream();
+
+                bmImg = BitmapFactory.decodeStream(is);
+
+
+            }catch(IOException e){
+                e.printStackTrace();
+            }
+            return bmImg;
+        }
+
+        protected void onPostExecute(Bitmap img){
+            imView.setImageBitmap(bmImg);
+        }
+
+    }
+
+
 
     // 설정값을 불러오는 함수
     private void load() {

@@ -3,6 +3,7 @@ package com.example.projectandroid;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -139,62 +141,76 @@ public class OrderActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             Log.d("postData", result);
-            int orderTotalPrice=0;
+            int orderTotalPrice = 0;
             String businessNumber = null;
             try {
                 JSONArray jArrObject = new JSONArray(result);
                 int list_count = jArrObject.length();
-                final int[] basketNum = new int[list_count];
-                int[] menuNum = new int[list_count];
-                int[] basketCount = new int[list_count];
-                String[] menuName = new String[list_count];
-                final int[] menuPrice = new int[list_count];
-                String[] businessNum = new String[list_count];
+                if (list_count == 0) {
+                    Toast.makeText(context.getApplicationContext(),"장바구니가 비어있습니다.", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivityForResult(intent, 1000);
+                } else {
+                    final int[] basketNum = new int[list_count];
+                    int[] menuNum = new int[list_count];
+                    int[] basketCount = new int[list_count];
+                    String[] menuName = new String[list_count];
+                    final int[] menuPrice = new int[list_count];
+                    String[] businessNum = new String[list_count];
 
 
 
-                for (int i = 0; i < list_count; i++) {
-                    JSONObject jsonObject = jArrObject.getJSONObject(i);
-                    basketNum[i] = jsonObject.getInt("basketNum");
-                    menuNum[i] = jsonObject.getInt("menuNum");
-                    menuName[i] = jsonObject.getString("menuName");
-                    basketCount[i] = jsonObject.getInt("basketCount");
-                    menuPrice[i] = jsonObject.getInt("menuPrice");
-                    businessNum[i] = jsonObject.getString("businessNum");
+                    for (int i = 0; i < list_count; i++) {
+                        JSONObject jsonObject = jArrObject.getJSONObject(i);
+                        basketNum[i] = jsonObject.getInt("basketNum");
+                        menuNum[i] = jsonObject.getInt("menuNum");
+                        menuName[i] = jsonObject.getString("menuName");
+                        basketCount[i] = jsonObject.getInt("basketCount");
+                        menuPrice[i] = jsonObject.getInt("menuPrice");
+                        businessNum[i] = jsonObject.getString("businessNum");
 
 
-                    orderTotalPrice=orderTotalPrice+(menuPrice[i]*basketCount[i]);
-                    businessNumber=businessNum[i];
+                        orderTotalPrice = orderTotalPrice + (menuPrice[i] * basketCount[i]);
+                        businessNumber = businessNum[i];
 
-                    TextView view1 = new TextView(context);
-                    view1.setText(menuName[i]);
-                    layout.addView(view1);
-                }
+                        TextView view1 = new TextView(context);
+                        view1.setText("메뉴명 : "+menuName[i]+"\n");
+                        view1.append("수량 : "+basketCount[i]+"개\n");
+                        view1.append("가격 : "+menuPrice[i]*basketCount[i]+"원\n\n");
+                        layout.addView(view1);
 
-
-
-
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            final int finalOrderTotalPrice = orderTotalPrice;
-            final String bNum=businessNumber;
-            order.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    try {
-                        requestData.accumulate("orderRequest",request.getText());
-                        requestData.accumulate("orderTotalPrice", finalOrderTotalPrice);
-                        requestData.accumulate("businessNum",bNum);
-                        Log.d("requestData", requestData.toString());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
                     }
-                    new postTask2().execute("http://192.168.64.157:8080/biz/order/insert.do");
+                    TextView view2 = new TextView(context);
+                    view2.append("총가격 : "+orderTotalPrice+"원");
+                    view2.setTextSize(20);
+                    view2.setTextColor(Color.parseColor("#000000"));
+                    layout.addView(view2);
+
+
+
                 }
-            });
+                } catch(JSONException e){
+                    e.printStackTrace();
+                }
+
+                final int finalOrderTotalPrice = orderTotalPrice;
+                final String bNum = businessNumber;
+                order.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        try {
+                            requestData.accumulate("orderRequest", request.getText());
+                            requestData.accumulate("orderTotalPrice", finalOrderTotalPrice);
+                            requestData.accumulate("businessNum", bNum);
+                            Log.d("requestData", requestData.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        new postTask2().execute("http://192.168.64.157:8080/biz/order/insert.do");
+                    }
+                });
+
 
         }
     }

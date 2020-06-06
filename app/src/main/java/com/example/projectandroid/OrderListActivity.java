@@ -144,6 +144,7 @@ public class OrderListActivity extends AppCompatActivity {
                 int[] menuPrice = new int[list_count];
 
                 ArrayList<String> arrayList = new ArrayList<String>();
+                ArrayList<String> arrayList2 = new ArrayList<String>();
 
                 for (int i = 0; i < list_count; i++) {
                     JSONObject jsonObject = jArrObject.getJSONObject(i);
@@ -167,14 +168,23 @@ public class OrderListActivity extends AppCompatActivity {
                 for(String list : arrayList){
                     TextView view1 = new TextView(context);
                     view1.setText(list);
+                    for(int j = 0;j<list_count;j++){
+                        if(list.equals(orderTime[j])){
+                            view1.append("\n주문번호 : "+orderNum[j]+" 주문 상태 : "+orderState[j]);
+                            break;
+                        }
+                    }
                     layout.addView(view1);
                     for(int j = 0;j<list_count;j++){
                         if(list.equals(orderTime[j])){
                             TextView text = new TextView(context);
-                            text.setText("메뉴명 : "+menuName[j]+" 수량 : " + detailCount[j] +" 가격 : " +(menuPrice[j]*detailCount[j]));
+                            text.setText("메뉴명 : "+menuName[j]+"\n수량 : " + detailCount[j] +"\n가격 : " +(menuPrice[j]*detailCount[j]));
                             layout.addView(text);
                         }
                     }
+                    TextView text2 = new TextView(context);
+                    text2.setText("");
+                    layout.addView(text2);
                 }
 
 

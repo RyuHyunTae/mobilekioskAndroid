@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -168,7 +169,8 @@ public class BasketActivity extends AppCompatActivity {
 
 
                     TextView view1 = new TextView(context);
-                    view1.setText(menuName[i]);
+                    view1.setText("메뉴명 : "+menuName[i]);
+                    view1.append(" 수량 : "+String.valueOf(basketCount[i]));
                     layout.addView(view1);
                     final Button btn = new Button(context);
                     btn.setId(menuNum[i]);
@@ -187,22 +189,40 @@ public class BasketActivity extends AppCompatActivity {
                             new postTask2().execute("http://192.168.64.157:8080/biz/user/basketCountUp.do");
                         }
                     });
-
-                    final Button btn2 = new Button(context);
-                    btn2.setId(menuNum[i]);
-                    btn2.setText("감소");
-                    layout.addView(btn2);
-                    final int finalI1 = i;
-                    btn2.setOnClickListener(new View.OnClickListener() {
+                    if(basketCount[i]>1) {
+                        final Button btn2 = new Button(context);
+                        btn2.setId(menuNum[i]);
+                        btn2.setText("감소");
+                        layout.addView(btn2);
+                        final int finalI1 = i;
+                        btn2.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                try {
+                                    requestData2.accumulate("basketNum", basketNum[finalI1]);
+                                    Log.d("requestData", requestData2.toString());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                new postTask2().execute("http://192.168.64.157:8080/biz/user/basketCountDown.do");
+                            }
+                        });
+                    }
+                    final Button btn4 = new Button(context);
+                    btn4.setId(menuNum[i]);
+                    btn4.setText("삭제");
+                    layout.addView(btn4);
+                    final int final3 = i;
+                    btn4.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             try {
-                                requestData2.accumulate("basketNum", basketNum[finalI1]);
+                                requestData2.accumulate("basketNum", basketNum[final3]);
                                 Log.d("requestData", requestData2.toString());
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                            new postTask2().execute("http://192.168.64.157:8080/biz/user/basketCountDown.do");
+                            new postTask2().execute("http://192.168.64.157:8080/biz/user/basketDelete.do");
                         }
                     });
 

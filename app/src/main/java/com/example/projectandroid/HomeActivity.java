@@ -3,17 +3,23 @@ package com.example.projectandroid;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -154,6 +160,7 @@ public class HomeActivity extends AppCompatActivity {
             return null;
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
@@ -161,7 +168,7 @@ public class HomeActivity extends AppCompatActivity {
             try {
                 JSONArray jArrObject = new JSONArray(result);
                 int list_count=jArrObject.length();
-                String[] shopName = new String[list_count];
+                final String[] shopName = new String[list_count];
                 final String[] businessNum = new String[list_count];
 
                 for(int i =0; i<list_count;i++){
@@ -177,11 +184,15 @@ public class HomeActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View view) {
                             Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                            intent.putExtra("shopName", shopName[finalI]);
                             intent.putExtra("businessNum", businessNum[finalI]);
                             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                             startActivityForResult(intent, 1000);
                         }
                     });
+                    TextView v1 = new TextView(context);
+                    v1.setText("");
+                    layout.addView(v1);
                 }
 
 

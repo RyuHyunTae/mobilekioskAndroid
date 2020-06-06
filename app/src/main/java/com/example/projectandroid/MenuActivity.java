@@ -3,10 +3,15 @@ package com.example.projectandroid;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -35,7 +40,7 @@ public class MenuActivity extends AppCompatActivity {
     String id, password, name, phone;
     private SharedPreferences appData;
 
-    String businessNum;
+    String businessNum,shopName;
     JSONObject requestData = new JSONObject();
 
     LinearLayout layout;
@@ -59,8 +64,11 @@ public class MenuActivity extends AppCompatActivity {
         hits=(TextView)findViewById(R.id.hits);
         context=this;
 
+
+
         Intent intent = getIntent();
         businessNum = intent.getExtras().getString("businessNum");
+        shopName = intent.getExtras().getString("shopName");
 
         try {
             requestData.accumulate("businessNum", businessNum);
@@ -68,6 +76,14 @@ public class MenuActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        TextView view0 = new TextView(context);
+        view0.setText(shopName);
+        view0.setTextSize(70);
+        view0.setTextColor(Color.parseColor("#000000"));
+        view0.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL);
+        layout.addView(view0);
+
 
         new postTask3().execute("http://192.168.64.157:8080/biz/user/preMenuList.do");
 
@@ -198,6 +214,8 @@ public class MenuActivity extends AppCompatActivity {
                     Sempty sempty = new Sempty();
 
 
+
+
                     for (int i = 0; i < count; i++) {
                         for (int j = 0; j < count - i - 1; j++) {
                             if (menuCount[j] < menuCount[j + 1]) {
@@ -222,18 +240,17 @@ public class MenuActivity extends AppCompatActivity {
 
                     }
 
-
-
-
                     if(jArrObject.isNull(0)) {          //빈값체크
                         TextView view1 = new TextView(context);
-                        view1.setText("비어있음");
+                        view1.setText("실시간 검색 순위\n");
+                        view1.append("검색 부족");
                         layout.addView(view1);
                     }else {
                         TextView view2 = new TextView(context);
-                        view2.setText(menuCountName[0]);
+                        view2.setText("실시간 검색 순위\n");
+                        view2.append("1."+menuCountName[0]+"\n");
                         for(int i=1;i<count;i++){
-                            view2.append(menuCountName[i]);
+                            view2.append(i+1+"."+menuCountName[i]+"\n");
                         }
                         layout.addView(view2);
                     }
@@ -316,6 +333,7 @@ public class MenuActivity extends AppCompatActivity {
             return null;
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
@@ -359,14 +377,15 @@ public class MenuActivity extends AppCompatActivity {
                         if(list.equals(menuCategory[j])){
                             final Button btn = new Button(context);
                             btn.setId(menuNum[j]);
+                            btn.setBackground(ContextCompat.getDrawable(context,R.drawable.button2));
                             if(menuNum[j]==topMenuNum1){
-                                btn.setText(menuName[j]+" 1등 ");
+                                btn.setText(menuName[j]+" "+menuPrice[j]+"원"+"         전날 매출 1등 ");
                             }else if(menuNum[j]==topMenuNum2){
-                                btn.setText(menuName[j]+" 2등 ");
+                                btn.setText(menuName[j]+" "+menuPrice[j]+"원"+"         전날 매출 2등 ");
                             }else if(menuNum[j]==topMenuNum3){
-                                btn.setText(menuName[j]+" 3등 ");
+                                btn.setText(menuName[j]+" "+menuPrice[j]+"원"+"         전날 매출 3등 ");
                             }else{
-                                btn.setText(menuName[j]);
+                                btn.setText(menuName[j]+" "+menuPrice[j]+"원");
                             }
                                 layout.addView(btn);
                             final int finalJ1 = j;
