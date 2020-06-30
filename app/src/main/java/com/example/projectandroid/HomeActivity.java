@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -170,24 +171,32 @@ public class HomeActivity extends AppCompatActivity {
                 int list_count=jArrObject.length();
                 final String[] shopName = new String[list_count];
                 final String[] businessNum = new String[list_count];
+                final int[] shopOpen = new int[list_count];
 
                 for(int i =0; i<list_count;i++){
                     JSONObject jsonObject = jArrObject.getJSONObject(i);
                     shopName[i]=jsonObject.getString("shopName");
                     businessNum[i]=jsonObject.getString("businessNum");
+                    shopOpen[i]=jsonObject.getInt("shopOpen");
+
                     final Button btn = new Button(context);
                     btn.setId(i);
                     btn.setText(shopName[i]);
                     layout.addView(btn);
                     final int finalI = i;
+                    final int finalI1 = i;
                     btn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
-                            intent.putExtra("shopName", shopName[finalI]);
-                            intent.putExtra("businessNum", businessNum[finalI]);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                            startActivityForResult(intent, 1000);
+                            if(shopOpen[finalI1]==2){
+                                Toast.makeText(context.getApplicationContext(),"매장 오픈전 입니다.", Toast.LENGTH_SHORT).show();
+                            } else if(shopOpen[finalI1]==1) {
+                                Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                                intent.putExtra("shopName", shopName[finalI]);
+                                intent.putExtra("businessNum", businessNum[finalI]);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                startActivityForResult(intent, 1000);
+                            }
                         }
                     });
                     TextView v1 = new TextView(context);

@@ -1,19 +1,19 @@
 package com.example.projectandroid;
 
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-
-import android.content.Intent;
-
-
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -28,78 +28,52 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-
-public class MainActivity extends AppCompatActivity {
-
-    private Button btnRegist, btnLogin;//회원가입화면,로그인화면으로 이동하기위한 변수
-    private EditText etId, etPWD; //아이디,비밀번호 변수
-    private SharedPreferences appData;
-
+public class JoinActivity extends AppCompatActivity {
 
     String id, password, name, phone;
 
-    JSONObject requestData;
+    private Button btnRegist, btnLogin;//회원가입화면,로그인화면으로 이동하기위한 변수
+    private EditText etId, etPWD, etName, etPhone; //아이디,비밀번호 변수
 
-    User user;
+
+
+    JSONObject requestData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_join);
 
-        etId = (EditText) findViewById(R.id.etID);
-        etPWD = (EditText) findViewById(R.id.etPWD);
+        etId=(EditText) findViewById(R.id.etID);
+        etPWD=(EditText) findViewById(R.id.etPWD);
+        etName=(EditText) findViewById(R.id.etName);
+        etPhone=(EditText) findViewById(R.id.etPhone);
 
-        btnLogin = (Button) findViewById(R.id.btnLogin);
-        btnRegist = (Button) findViewById(R.id.btnRegist);
+        btnRegist=(Button) findViewById(R.id.btnRegist);
 
-        appData = getSharedPreferences("appData", MODE_PRIVATE);
-        load();
-
-        btnLogin.setOnClickListener(new View.OnClickListener() {
+        btnRegist.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
                     requestData= new JSONObject();
                     id = etId.getText().toString();
                     password = etPWD.getText().toString();
+                    name = etName.getText().toString();
+                    phone = etPhone.getText().toString();
                     requestData.accumulate("id", id);
                     requestData.accumulate("password", password);
+                    requestData.accumulate("name", name);
+                    requestData.accumulate("phone",phone);
                     Log.d("requestData", requestData.toString());
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                new postTask().execute("http://192.168.64.157:8080/biz/user/login.do");
-
+                new postTask().execute("http://192.168.64.157:8080/biz/user/join.do");
             }
         });
 
-        btnRegist.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), JoinActivity.class);
 
-                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-                startActivityForResult(intent, 1000);
-            }
-        });
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        //setResult를 통해 받아온 요청번호, 상태, 데이터
-        Log.d("RESULT", requestCode + "");
-        Log.d("RESULT", resultCode + "");
-        Log.d("RESULT", data + "");
-
-        if (requestCode == 1000 && resultCode == RESULT_OK) {
-            Toast.makeText(MainActivity.this, "회원가입 되었습니다!", Toast.LENGTH_SHORT).show();
-            etId.setText(data.getStringExtra("ID"));
-        }
     }
 
     class postTask extends AsyncTask<String, String, String> {
@@ -169,52 +143,14 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             Log.d("postData", result);
-
-            try {
-                JSONObject jsonObject = new JSONObject(result);
-                user = new User(jsonObject.getString("id"), jsonObject.getString("password"), jsonObject.getString("name"),jsonObject.getString("phone"));
-                Log.d("UserInfo", user.toString());
-
-                save();
-
-                if(user.getId()!=null) {
-                    Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivityForResult(intent, 1000);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivityForResult(intent, 1000);
         }
     }
-    private void save() {
-        // SharedPreferences 객체만으론 저장 불가능 Editor 사용
-        SharedPreferences.Editor editor = appData.edit();
-
-        // 에디터객체.put타입( 저장시킬 이름, 저장시킬 값 )
-        // 저장시킬 이름이 이미 존재하면 덮어씌움
-        editor.putString("id", user.getId());
-        editor.putString("password", user.getPasswoard());
-        editor.putString("name", user.getName());
-        editor.putString("phone",user.getPhone());
-
-        // apply, commit 을 안하면 변경된 내용이 저장되지 않음
-        editor.apply();
-    }
-
-    // 설정값을 불러오는 함수
-    private void load() {
-        // SharedPreferences 객체.get타입( 저장된 이름, 기본값 )
-        // 저장된 이름이 존재하지 않을 시 기본값
-        id = appData.getString("id", "");
-        password = appData.getString("password", "");
-        name = appData.getString("name","");
-        phone = appData.getString("phone", "");
-    }
 }
-
